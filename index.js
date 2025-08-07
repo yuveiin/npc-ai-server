@@ -1,39 +1,42 @@
 const express = require("express");
 const cors = require("cors");
-const { Configuration, OpenAIApi } = require("openai");
+const { OpenAI } = require("openai");
 
 const app = express();
+const port = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(express.json());
 
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
-app.post("/ask", async (req, res) => {
-  const { message } = req.body;
+app.post("/chat", async (req, res) => {
+  const question = req.body.question;
 
-  if (!message) {
-    return res.status(400).json({ error: "Message is required." });
+  if (!question || question.length < 3) {
+    return res.status(400).json({ error: "Invalid question." });
   }
 
   try {
-    const response = await openai.createChatCompletion({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: "Sen bir oyun içi NPC'sin. Sadece oyunla ilgili soruları yanıtla." },
-        { role: "user", content: message },
-      ],
+    const completion = await openai.chat.completions.create({
+      messages: [{ role: "user", content: question }],
+      model: "gpt-3.5-turbo",
     });
 
-    res.json({ reply: response.data.choices[0].message.content });
+    const answer = completion.choices[0].message.content.trim();
+    res.json({ answer });
   } catch (error) {
     console.error("OpenAI error:", error);
-    res.status(500).json({ error: "OpenAI API failed." });
+    res.status(500).json({ error: "Something went wrong." });
   }
 });
 
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
+app.get("/", (req, res) => {
+  res.send("NPC AI Server is running!");
+});
+
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });
