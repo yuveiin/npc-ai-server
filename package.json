@@ -6,8 +6,8 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
     "express": "^4.18.2",
-    "openai": "^4.20.0"
+    "openai": "^4.28.1", // 🔥 En son sürüm
+    "cors": "^2.8.5"
   }
 }
